@@ -2,13 +2,13 @@
 
 Este repositorio contiene **agentes desarrollados en Python**, mostrando cómo interactuar con modelos como los de OpenAI para tareas básicas de conversación, respuesta automática y generación de texto.
 
-Actualmente, se incluye un agente de ejemplo basado en la API de OpenAI:
+Actualmente, se incluye un agente de ejemplo basado en clonacion de voz:
 
 ```
-agente_openai.py
+cloador_de_voz.ipynb
 ```
 
-Este archivo muestra cómo utilizar `openai.ChatCompletion` para enviar mensajes a un modelo y recibir respuestas. Ideal como punto de partida para asistentes virtuales o automatización de tareas simples.
+Este archivo muestra cómo utilizar `TTS` para clonar una voz usando una muestra pequeña y poder 'decir' un texto con la voz clonada
 
 ---
 
@@ -34,12 +34,12 @@ source venv/bin/activate  # En Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Crea tu archivo `.env` o define la variable `OPENAI_API_KEY` para poder usar el agente.
+4. Descarga los elementos necesarios para el uso del clonador
 
 5. Ejecuta el agente:
 
 ```bash
-python agente_openai.py
+python clonador_de_voz.ipynb
 ```
 
 ---
@@ -71,5 +71,3 @@ Este repositorio se encuentra en expansión. Se agregarán más agentes como:
 Este proyecto está licenciado bajo los términos de la licencia MIT.
 
 ---
-
-Hecho con ❤️ por la comunidad.
