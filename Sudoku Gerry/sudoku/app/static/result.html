@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado Sudoku</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 1px;
+            background-color: #000;
+            padding: 2px;
+            width: 450px;
+            margin: 20px auto;
+        }
+        .sudoku-cell {
+            background-color: white;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        /* Bordes más gruesos para los bloques 3x3 */
+        .sudoku-cell:nth-child(3n) {
+            border-right: 2px solid #000;
+        }
+        .sudoku-cell:nth-child(9n) {
+            border-right: none;
+        }
+        .sudoku-cell:nth-child(n+19):nth-child(-n+27),
+        .sudoku-cell:nth-child(n+46):nth-child(-n+54) {
+            border-bottom: 2px solid #000;
+        }
+        .stats {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .error {
+            color: #721c24;
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .original {
+            color: #666;
+        }
+        .solved {
+            color: #000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Resultado del Sudoku</h1>
+    
+    <div id="taskIdInput" style="margin: 20px 0;">
+        <input type="text" id="taskId" placeholder="Ingresa el Task ID">
+        <button onclick="checkResult()">Verificar Resultado</button>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        Verificando resultado...
+    </div>
+
+    <div id="error" class="error" style="display: none;"></div>
+
+    <div id="result" style="display: none;">
+        <div class="sudoku-grid" id="sudokuGrid">
+            <!-- Se generará dinámicamente -->
+        </div>
+
+        <div class="stats" id="stats">
+            <!-- Se llenará con las estadísticas -->
+        </div>
+    </div>
+
+    <script>
+        // Obtener el task_id de la URL si existe
+        const urlParams = new URLSearchParams(window.location.search);
+        const taskId = urlParams.get('task_id');
+        if (taskId) {
+            document.getElementById('taskId').value = taskId;
+            checkResult();
+        }
+
+        // Verificar el resultado
+        async function checkResult() {
+            const taskId = document.getElementById('taskId').value;
+            if (!taskId) {
+                showError('Por favor ingresa un Task ID');
+                return;
+            }
+
+            const loadingDiv = document.getElementById('loading');
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+
+            loadingDiv.style.display = 'block';
+            resultDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`/result/${taskId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.status === 'completed') {
+                        displaySolution(data);
+                    } else if (data.status === 'failed') {
+                        showError(`Error al resolver el Sudoku: ${data.error_message}`);
+                    } else {
+                        showError('El Sudoku aún está siendo procesado');
+                    }
+                } else {
+                    throw new Error(data.detail || 'Error al obtener el resultado');
+                }
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        // Mostrar la solución
+        function displaySolution(data) {
+            const grid = document.getElementById('sudokuGrid');
+            const stats = document.getElementById('stats');
+            const resultDiv = document.getElementById('result');
+
+            // Limpiar el grid
+            grid.innerHTML = '';
+
+            // Crear las celdas
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'sudoku-cell';
+                    cell.textContent = data.solution[i][j];
+                    grid.appendChild(cell);
+                }
+            }
+
+            // Mostrar estadísticas
+            stats.innerHTML = `
+                <h3>Estadísticas</h3>
+                <p>Pasos realizados: ${data.steps}</p>
+                <p>Nodos explorados: ${data.nodes_explored}</p>
+            `;
+
+            resultDiv.style.display = 'block';
+        }
+
+        // Mostrar error
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Verificar resultado cada 5 segundos si el estado es 'pending' o 'processing'
+        function startPolling() {
+            const taskId = document.getElementById('taskId').value;
+            if (!taskId) return;
+
+            const checkInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/result/${taskId}`);
+                    const data = await response.json();
+
+                    if (data.status === 'completed' || data.status === 'failed') {
+                        clearInterval(checkInterval);
+                        checkResult();
+                    }
+                } catch (error) {
+                    console.error('Error polling:', error);
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 
