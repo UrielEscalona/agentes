@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Solver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 1px;
+            background-color: #000;
+            padding: 2px;
+            width: 450px;
+            margin: 20px auto;
+        }
+        .sudoku-cell {
+            background-color: white;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sudoku-cell input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            text-align: center;
+            font-size: 20px;
+        }
+        .sudoku-cell input:focus {
+            outline: 2px solid #007bff;
+        }
+        /* Bordes más gruesos para los bloques 3x3 */
+        .sudoku-cell:nth-child(3n) {
+            border-right: 2px solid #000;
+        }
+        .sudoku-cell:nth-child(9n) {
+            border-right: none;
+        }
+        .sudoku-cell:nth-child(n+19):nth-child(-n+27),
+        .sudoku-cell:nth-child(n+46):nth-child(-n+54) {
+            border-bottom: 2px solid #000;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sudoku Solver</h1>
+    
+    <div class="sudoku-grid" id="sudokuGrid">
+        <!-- Se generará dinámicamente -->
+    </div>
+
+    <div class="button-container">
+        <button onclick="solveSudoku()">Resolver Sudoku</button>
+        <button onclick="clearGrid()">Limpiar</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        // Crear el grid de Sudoku
+        function createGrid() {
+            const grid = document.getElementById('sudokuGrid');
+            for (let i = 0; i < 81; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'sudoku-cell';
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.min = '0';
+                input.max = '9';
+                input.dataset.index = i;
+                cell.appendChild(input);
+                grid.appendChild(cell);
+            }
+        }
+
+        // Obtener los valores del grid
+        function getGridValues() {
+            const inputs = document.querySelectorAll('.sudoku-cell input');
+            const grid = Array(9).fill().map(() => Array(9).fill(0));
+            
+            inputs.forEach(input => {
+                const index = parseInt(input.dataset.index);
+                const row = Math.floor(index / 9);
+                const col = index % 9;
+                grid[row][col] = parseInt(input.value) || 0;
+            });
+            
+            return grid;
+        }
+
+        // Enviar el Sudoku para resolver
+        async function solveSudoku() {
+            const grid = getGridValues();
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                const response = await fetch('http://localhost:8000/solve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ grid }),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'success';
+                    resultDiv.innerHTML = `
+                        <p>Sudoku enviado para resolver. Task ID: ${data.task_id}</p>
+                        <p>Estado: ${data.status}</p>
+                        <p><a href="/result?task_id=${data.task_id}" target="_blank">Ver resultado</a></p>
+                    `;
+                } else {
+                    throw new Error(data.detail || 'Error al resolver el Sudoku');
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Limpiar el grid
+        function clearGrid() {
+            const inputs = document.querySelectorAll('.sudoku-cell input');
+            inputs.forEach(input => input.value = '');
+            document.getElementById('result').textContent = '';
+        }
+
+        // Inicializar el grid al cargar la página
+        createGrid();
+    </script>
+</body>
+</html> 

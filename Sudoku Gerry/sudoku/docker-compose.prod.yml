@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+      - MYSQL_HOST=mysql
+      - MYSQL_USER=sudoku
+      - MYSQL_PASSWORD=sudoku
+      - MYSQL_DATABASE=sudoku
+      - ENVIRONMENT=production
+    depends_on:
+      - rabbitmq
+      - mysql
+    restart: always
+    networks:
+      - sudoku-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+      - MYSQL_HOST=mysql
+      - MYSQL_USER=sudoku
+      - MYSQL_PASSWORD=sudoku
+      - MYSQL_DATABASE=sudoku
+      - ENVIRONMENT=production
+    depends_on:
+      - rabbitmq
+      - mysql
+    restart: always
+    networks:
+      - sudoku-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: always
+    networks:
+      - sudoku-network
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=sudoku
+      - MYSQL_USER=sudoku
+      - MYSQL_PASSWORD=sudoku
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+    networks:
+      - sudoku-network
+
+volumes:
+  rabbitmq_data:
+  mysql_data:
+
+networks:
+  sudoku-network:
+    driver: bridge 
