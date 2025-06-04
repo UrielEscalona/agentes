@@ -1,0 +1,23 @@
+# Requisitos principales para el sistema de clonación, traducción y síntesis de voz
+
+# Deep Learning y TTS
+TTS==0.22.0
+transformers==4.38.2
+torch
+torchaudio
+coqpit
+encodec
+
+# Manejo de audio
+pydub
+soundfile
+sounddevice
+audioread
+
+# Utilidades adicionales de NLP (opcional pero recomendado)
+langcodes
+sentencepiece
+protobuf
+
+# Web (solo si usas interfaz Flask)
+Flask==3.1.1

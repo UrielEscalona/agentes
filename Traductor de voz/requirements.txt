@@ -1,0 +1,8 @@
+
+streamlit
+openai
+whisper
+TTS
+pydub
+python-dotenv
+torch
