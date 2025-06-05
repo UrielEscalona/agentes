@@ -1,48 +1,59 @@
-
 import streamlit as st
-from whisper_utils import transcribe_audio
-from xtts_utils import generate_xtts_audio
-import openai
-import os
+import whisper
 import tempfile
-from dotenv import load_dotenv
+import os
+from pydub import AudioSegment
+import torch
+from TTS.api import TTS
 
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+st.title("🗣️ Traductor y Clonador de Voz (Español → Inglés)")
+st.info("Sube un audio en español (.wav, .mp3, .ogg). El sistema lo transcribirá, traducirá y usará tu voz clonada para reproducirlo en inglés.")
 
-st.set_page_config(page_title="Voice Translator", page_icon="🗣️")
-st.title("🗣️ Traductor de Voz con Clonación Personalizada")
+@st.cache_resource
+def load_model():
+    return whisper.load_model("base")
 
-st.info("Graba tu voz en español y traduce al inglés manteniendo tu identidad vocal.")
+@st.cache_resource
+def load_tts_model():
+    return TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=False, gpu=torch.cuda.is_available())
 
-uploaded_file = st.file_uploader("📥 Sube tu voz en español (formato WAV)", type=["wav"])
+model = load_model()
+tts = load_tts_model()
 
-if uploaded_file:
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-        tmp.write(uploaded_file.read())
-        audio_path = tmp.name
+# Guardar archivo temporal y convertir a .wav si es necesario
+def save_and_convert_audio(uploaded_file):
+    original_ext = os.path.splitext(uploaded_file.name)[-1].lower()
+    temp_input = tempfile.NamedTemporaryFile(delete=False, suffix=original_ext)
+    temp_input.write(uploaded_file.read())
+    temp_input.close()
 
-    st.audio(audio_path, format="audio/wav")
+    if original_ext != ".wav":
+        audio = AudioSegment.from_file(temp_input.name)
+        wav_path = temp_input.name.replace(original_ext, ".wav")
+        audio.export(wav_path, format="wav")
+    else:
+        wav_path = temp_input.name
 
-    if st.button("✅ Procesar"):
-        with st.spinner("Transcribiendo con Whisper..."):
-            texto_es = transcribe_audio(audio_path)
-            st.success("Transcripción en español:")
-            st.write(texto_es)
+    return wav_path
 
-        with st.spinner("Traduciendo con GPT..."):
-            prompt = f"Traduce al inglés esta frase manteniendo el sentido: {texto_es}"
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            texto_en = response.choices[0].message.content.strip()
-            st.success("Traducción al inglés:")
-            st.write(texto_en)
+# Subida
+uploaded_file = st.file_uploader("🎤 Sube un archivo de audio", type=["wav", "mp3", "ogg"])
 
-        with st.spinner("Generando voz clonada en inglés..."):
-            audio_output_path = generate_xtts_audio(texto_en, audio_path)
-            st.success("✅ Audio generado con tu voz en inglés")
-            st.audio(audio_output_path, format="audio/wav")
+if uploaded_file is not None:
+    st.audio(uploaded_file)
+    wav_path = save_and_convert_audio(uploaded_file)
+
+    with st.spinner("Transcribiendo y traduciendo..."):
+        result = model.transcribe(wav_path, task="translate")
+        translated_text = result["text"]
+        st.success("✅ Traducción lista")
+        st.text_area("📝 Texto traducido al inglés", translated_text, height=200)
+
+    st.subheader("🧬 Reproducción con tu propia voz (clonada)")
+    speaker_wav = wav_path
+    output_path = wav_path.replace(".wav", "_output.wav")
+
+    tts.tts_to_file(text=translated_text, speaker_wav=speaker_wav, language="en", file_path=output_path)
+    st.audio(output_path, format="audio/wav")
+
+    os.remove(wav_path)
