@@ -5,7 +5,7 @@ Este repositorio contiene **agentes desarrollados en Python**, mostrando cómo i
 Actualmente, se incluye un agente de ejemplo basado en clonacion de voz:
 
 ```
-cloador_de_voz.ipynb
+clonador_de_voz.ipynb
 ```
 
 Este archivo muestra cómo utilizar `TTS` para clonar una voz usando una muestra pequeña y poder 'decir' un texto con la voz clonada
