@@ -4,7 +4,7 @@ Agente Médico prototipo para curso de Agentes de IA (Actumlogos).
 
 ---
 
-## 🚀 Instalación
+## 🚀 Configuración
 
 ### 1. Clona el repositorio
 
@@ -24,6 +24,17 @@ cd agentes/agente_medico_MiguelGarrido
 ```bash
 poetry install
 ```
+### 5. Configura las variables de entorno necesarias.
+Se utilizan las APIs de openai y tavily para el funcionamiento del código, así como la API de langsmith para el monitoreo (opcional). Por lo que es necesario crear un archivo .env para almacenar las API_KEYs.
+```bash
+OPENAI_API_KEY=<tu-api-de-openai>
+TAVILY_API_KEY=<tu-api-de-tavily>
+LANGSMITH_API_KEY=<tu-api-de-langsmith>
+LANGSMITH_TRACING=true
+LANGCHAIN_PROJECT=<nombre-de-proyecto>
+```
+
+
 
 ## 💻 Ejecución
 Puedes ejecutar el código con el siguiente comando
