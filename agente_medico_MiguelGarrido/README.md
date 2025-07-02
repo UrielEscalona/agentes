@@ -27,9 +27,9 @@ poetry install
 ### 5. Configura las variables de entorno necesarias.
 Se utilizan las APIs de openai y tavily para el funcionamiento del código, así como la API de langsmith para el monitoreo (opcional). Por lo que es necesario crear un archivo .env para almacenar las API_KEYs.
 ```bash
-OPENAI_API_KEY=<tu-api-de-openai>
-TAVILY_API_KEY=<tu-api-de-tavily>
-LANGSMITH_API_KEY=<tu-api-de-langsmith>
+OPENAI_API_KEY=<tu-apikey-de-openai>
+TAVILY_API_KEY=<tu-apikey-de-tavily>
+LANGSMITH_API_KEY=<tu-apikey-de-langsmith>
 LANGSMITH_TRACING=true
 LANGCHAIN_PROJECT=<nombre-de-proyecto>
 ```
