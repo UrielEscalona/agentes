@@ -1,0 +1,28 @@
+[project]
+name = "agente-medicina"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Miguel Garrido miguegarrido160158@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "langchain (>=0.3.26,<0.4.0)",
+    "langgraph (>=0.5.0,<0.6.0)",
+    "langchain-openai (>=0.3.27,<0.4.0)",
+    "langchain-tavily (>=0.2.5,<0.3.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "langchain-chroma (>=0.2.4,<0.3.0)",
+    "langchainhub (>=0.1.21,<0.2.0)",
+    "beautifulsoup4 (>=4.13.4,<5.0.0)",
+    "langchain-community (>=0.3.26,<0.4.0)",
+    "pypdf (>=5.7.0,<6.0.0)",
+    "pytest (>=8.4.1,<9.0.0)",
+    "streamlit (>=1.46.1,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
